@@ -240,7 +240,7 @@
   to values. The value can be a vector with one of the above predicate functions 
   describing how the key is related to the value: (where query {:name [like \"chris\"})"
   [query form]
-  (where-or-having-form where* query form))
+  (where-or-having-form `where* query form))
 
 (defn having*
   "Add a having clause to the query. Clause can be either a map or a string, and
@@ -261,7 +261,7 @@
 
   Having only works if you have an aggregation, using it without one will cause an error."
   [query form]
-  (where-or-having-form having* query form))
+  (where-or-having-form `having* query form))
 
 (defn order
   "Add an ORDER BY clause to a select, union, union-all, or intersect query.
