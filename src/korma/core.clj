@@ -103,10 +103,11 @@
 ;; Query macros
 ;;*****************************************************
 
-(defn- make-query-then-exec [query-fn body & args]
-  `(let [query# (-> (~query-fn ~@args)
-                    ~@body)]
-     (exec query#)))
+(defmacro make-query-then-exec [query-fn body & args]
+  (prn query-fn body args)
+  ``(let [~'query# (-> (~~query-fn ~~@args)
+                       ~@~body)]
+      (exec ~'query#)))
 
 (defmacro select 
   "Creates a select query, applies any modifying functions in the body and then
@@ -116,7 +117,7 @@
         (fields :name :email)
         (where {:id 2}))"
   [ent & body]
-  (make-query-then-exec `select* body ent))
+  (make-query-then-exec select* body ent))
 
 (defmacro update 
   "Creates an update query, applies any modifying functions in the body and then
@@ -126,7 +127,7 @@
         (set-fields {:name \"chris\"}) 
         (where {:id 4}))"
   [ent & body]
-  (make-query-then-exec `update* body ent))
+  (make-query-then-exec update* body ent))
 
 (defmacro delete 
   "Creates a delete query, applies any modifying functions in the body and then
@@ -135,7 +136,7 @@
   ex: (delete user 
         (where {:id 7}))"
   [ent & body]
-  (make-query-then-exec `delete* body ent))
+  (make-query-then-exec delete* body ent))
 
 (defmacro insert 
   "Creates an insert query, applies any modifying functions in the body and then
@@ -145,7 +146,7 @@
   ex: (insert user 
         (values [{:name \"chris\"} {:name \"john\"}]))"
   [ent & body]
-  (make-query-then-exec `insert* body ent))
+  (make-query-then-exec insert* body ent))
 
 (defmacro union
   "Creates a union query, applies any modifying functions in the body and then
@@ -158,7 +159,7 @@
                    (where {:id 7})))
         (order :name))"
   [& body]
-  (make-query-then-exec `union* body))
+  (make-query-then-exec union* body))
 
 (defmacro union-all
   "Creates a union-all query, applies any modifying functions in the body and then
@@ -171,7 +172,7 @@
                    (where {:id 7})))
         (order :name))"
   [& body]
-  (make-query-then-exec `union-all* body))
+  (make-query-then-exec union-all* body))
 
 (defmacro intersect
   "Creates an intersect query, applies any modifying functions in the body and then
@@ -184,7 +185,7 @@
                    (where {:id 8})))
         (order :name))"
   [& body]
-  (make-query-then-exec `intersect* body))
+  (make-query-then-exec intersect* body))
 
 ;;*****************************************************
 ;; Query parts
@@ -217,11 +218,11 @@
   [query table]
   (update-in query [:from] conj table))
 
-(defn- where-or-having-form [where*-or-having* query form]
-  `(let [q# ~query]
-     (~where*-or-having* q#
-                         (bind-query q#
-                                     (eng/pred-map ~(eng/parse-where `~form))))))
+(defmacro where-or-having-form [where*-or-having* query form]
+  ``(let [~'q# ~~query]
+      (~~where*-or-having* ~'q#
+                           (bind-query ~'q#
+                             (eng/pred-map ~(eng/parse-where `~~form))))))
 
 (defn where*
   "Add a where clause to the query. Clause can be either a map or a string, and
@@ -240,7 +241,7 @@
   to values. The value can be a vector with one of the above predicate functions 
   describing how the key is related to the value: (where query {:name [like \"chris\"})"
   [query form]
-  (where-or-having-form `where* query form))
+  (where-or-having-form where* query form))
 
 (defn having*
   "Add a having clause to the query. Clause can be either a map or a string, and
@@ -261,7 +262,7 @@
 
   Having only works if you have an aggregation, using it without one will cause an error."
   [query form]
-  (where-or-having-form `having* query form))
+  (where-or-having-form having* query form))
 
 (defn order
   "Add an ORDER BY clause to a select, union, union-all, or intersect query.
