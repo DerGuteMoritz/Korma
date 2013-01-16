@@ -104,7 +104,6 @@
 ;;*****************************************************
 
 (defmacro make-query-then-exec [query-fn body & args]
-  (prn query-fn body args)
   ``(let [~'query# (-> (~~query-fn ~~@args)
                        ~@~body)]
       (exec ~'query#)))
